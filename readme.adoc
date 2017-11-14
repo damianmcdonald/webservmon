@@ -93,14 +93,12 @@ mail.subject.alive=Web Service Monitor ALIVE email
 mail.subject.error=Web Service Monitor ERROR email
 
 # send alive email once a day at 10:00am
-schedule.alive.cron=0 0 10 * * *"
+schedule.alive.cron=0 0 10 * * *
 
 # execute the web service status checks every 25 seconds
 schedule.statuscheck.interval=*/25 * * * * *
 ----
 
-TIP: A status web service exists that can be manually accessed at; 
-
-http://localhost:8080/webservmon/status
+TIP: A status web service exists that can be manually accessed at; http://localhost:8080/webservmon/status
 
 
