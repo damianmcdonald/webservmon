@@ -1,0 +1,104 @@
+:source-highlighter: coderay
+:data-uri:
+
+`webservmon` is a https://projects.spring.io/spring-boot/[Spring Boot] application that can monitor web services and send an email on service failure.
+
+== Getting started
+
+The library was built using the following toolchain:
+
+* http://www.oracle.com/technetwork/java/javase/downloads/index.html[Java Oracle JDK 1.8]
+* https://maven.apache.org/download.cgi[Maven 3.2.3]
+
+Your mileage may vary with versions different than the ones specified above.
+
+Follow these steps to get started:
+
+1) Git-clone this repository.
+
+----
+$ git clone git://github.com/damianmcdonald/webservmon.git my-project
+----
+
+2) Change directory into your clone:
+
+----
+$ cd my-project
+----
+    
+3) Use Maven to compile and test everything:
+
+----
+$ mvn clean package
+----
+
+4) Start the application:
+
+----
+$ java -jar target/webservmon-1.0.0.jar
+----
+
+== Configuration
+
+The application is configured via `/src/main/resources/application.properties`.
+
+.application.properties
+[source,SQL]
+----
+# #############################
+# Spring Boot specific config #
+###############################
+server.port=8080
+server.contextPath=/webservmon
+spring.mail.host=192.168.0.22
+spring.mail.port= 25
+spring.mail.username= test
+spring.mail.password= test
+#spring.mail.properties.mail.smtp.connectiontimeout=5000
+#spring.mail.properties.mail.smtp.timeout=3000
+#spring.mail.properties.mail.smtp.writetimeout=5000
+#spring.mail.default-encoding=UTF-8
+#spring.mail.protocol=smtp
+#spring.mail.test-connection=false
+#spring.mail.properties.mail.smtp.auth=true
+#spring.mail.properties.mail.smtp.starttls.enable=true
+
+
+# #############################
+#   Logging specific config   #
+###############################
+logging.level.root=WARN
+logging.level.org.springframework.web=INFO
+logging.level.com.github.damianmcdonald=DEBUG
+logging.pattern.console= "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+#logging.pattern.file= "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+#logging.file=/opt/scratch/application.log
+
+
+# #############################
+# Application specific config #
+###############################
+
+# comma separated list of the web service urls to monitor
+service.urls=http://www.google.com, https://spring.io
+
+# comma separated list of the email addresses to send the email notifications
+mail.to=to1@webserv.mon.com, to2@webserv.mon.com
+
+# email address that the notifications are sent from
+mail.from=from@webserv.mon.com
+
+# the subjects for the alive and error emails respectively
+mail.subject.alive=Web Service Monitor ALIVE email
+mail.subject.error=Web Service Monitor ERROR email
+
+# send alive email once a day at 10:00am
+schedule.alive.cron=0 0 10 * * *"
+
+# execute the web service status checks every 25 seconds
+schedule.statuscheck.interval=*/25 * * * * *
+----
+
+TIP: A status web service exists that can be manually accessed at; http://localhost:8080/webservmon/status
+
+
