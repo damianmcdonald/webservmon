@@ -99,6 +99,8 @@ schedule.alive.cron=0 0 10 * * *"
 schedule.statuscheck.interval=*/25 * * * * *
 ----
 
-TIP: A status web service exists that can be manually accessed at; http://localhost:8080/webservmon/status
+TIP: A status web service exists that can be manually accessed at; 
+
+http://localhost:8080/webservmon/status
 
 
