@@ -20,6 +20,8 @@ public class Mailer {
 
     private static final String RESULT_KEY = "results";
 
+    private final static String TEMPLATE_FILE = "report-text.ftl";
+
     @Autowired
     private JavaMailSender javaMailSender;
 
@@ -59,7 +61,7 @@ public class Mailer {
             helper.setTo(mailTo);
             helper.setFrom(mailFrom);
             helper.setSubject(subject);
-            helper.setText(templator.getMergedTemplate(model));
+            helper.setText(templator.getMergedTemplate(model, TEMPLATE_FILE));
             return mail;
         } catch (Exception ex) {
             ex.getMessage();

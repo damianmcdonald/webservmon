@@ -15,16 +15,14 @@ public class Templator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Templator.class);
 
-    private final static String TEMPLATE_FILE = "report.ftl";
-
     @Autowired
     private Configuration freemarkerConfig;
 
-    public String getMergedTemplate(final HashMap model) {
+    public String getMergedTemplate(final HashMap model,final String templateFile) {
         try {
-            final Template t = freemarkerConfig.getTemplate(TEMPLATE_FILE);
+            final Template t = freemarkerConfig.getTemplate(templateFile);
             final String mergedTemplate = FreeMarkerTemplateUtils.processTemplateIntoString(t, model);
-            LOGGER.debug(String.format("Merged template %s with following model:", TEMPLATE_FILE));
+            LOGGER.debug(String.format("Merged template %s with following model:", templateFile));
             model.forEach((k, v) -> LOGGER.debug(String.format("Key %s : Value %s", k, v)));
             LOGGER.trace(String.format("Dumping the merged template: %n %s", mergedTemplate));
             return FreeMarkerTemplateUtils.processTemplateIntoString(t, model);

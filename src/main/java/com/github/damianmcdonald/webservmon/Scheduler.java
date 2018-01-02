@@ -15,10 +15,13 @@ import java.util.stream.Collectors;
 @Component
 public class Scheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Mailer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Scheduler.class);
 
     @Autowired
     private MonitorService monitorService;
+
+    @Autowired
+    private ThrottleService throttleService;
 
     @Autowired
     private Mailer mailer;
@@ -38,9 +41,16 @@ public class Scheduler {
         if (!errors.isEmpty()) {
             LOGGER.debug("One or more web services has errors, sending mail.");
             results.forEach((k, v) -> LOGGER.debug(String.format("URL %s : HttpStatus %s", k, v)));
-            mailer.sendMail(true, results);
+            if (!throttleService.applyThrottle()) {
+                LOGGER.debug("Sending ERROR mail.");
+                mailer.sendMail(true, results);
+            } else {
+                LOGGER.debug("ERROR mail send threshold breached. ERROR mail will not be sent.");
+            }
+            return;
         }
         LOGGER.debug("Web service checks passed with no errors, not sending mail.");
+        throttleService.decrementThrottleInstance();
     }
 
     @Scheduled(cron = "${schedule.alive.cron}")
@@ -49,5 +59,11 @@ public class Scheduler {
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
         LOGGER.debug("Sending ALIVE mail.");
         mailer.sendMail(false, results);
+    }
+
+    @Scheduled(cron = "${throttle.threshold.period}")
+    public void resetThrottleThresholdPeriod() {
+        LOGGER.debug("Executing resetThrottleThresholdPeriod scheduled task.");
+        throttleService.resetThrottleInstances();
     }
 }

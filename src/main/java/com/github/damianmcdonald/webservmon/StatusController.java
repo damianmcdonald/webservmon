@@ -16,9 +16,11 @@ import java.util.Map;
 @RestController
 public class StatusController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Mailer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatusController.class);
 
     private static final String RESULT_KEY = "results";
+
+    private final static String TEMPLATE_FILE = "report-html.ftl";
 
     @Value("${service.urls}")
     private String[] urls;
@@ -35,6 +37,6 @@ public class StatusController {
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
         final HashMap model = new HashMap();
         model.put(RESULT_KEY, results);
-        return templator.getMergedTemplate(model);
+        return templator.getMergedTemplate(model, TEMPLATE_FILE);
     }
 }
