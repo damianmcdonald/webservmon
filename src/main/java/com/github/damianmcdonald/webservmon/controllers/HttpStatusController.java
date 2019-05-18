@@ -1,5 +1,7 @@
-package com.github.damianmcdonald.webservmon;
+package com.github.damianmcdonald.webservmon.controllers;
 
+import com.github.damianmcdonald.webservmon.monitors.HttpMonitorService;
+import com.github.damianmcdonald.webservmon.templators.Templator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,26 +16,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-public class StatusController {
+public class HttpStatusController implements StatusController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StatusController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpStatusController.class);
 
     private static final String RESULT_KEY = "results";
 
-    private final static String TEMPLATE_FILE = "report-html.ftl";
+    private final static String TEMPLATE_FILE = "http-report-html.ftl";
 
-    @Value("${service.urls}")
+    @Value("${http.service.urls}")
     private String[] urls;
 
     @Autowired
-    private MonitorService monitorService;
+    private HttpMonitorService monitorService;
 
     @Autowired
     private Templator templator;
 
-    @RequestMapping(value = "/status", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
+    @RequestMapping(value = "/http-status", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
     public String status() {
-        LOGGER.debug("Executing status controller.");
+        LOGGER.debug("Executing http-status controller.");
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
         final HashMap model = new HashMap();
         model.put(RESULT_KEY, results);
