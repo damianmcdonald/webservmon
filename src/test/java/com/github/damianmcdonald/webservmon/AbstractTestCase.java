@@ -5,8 +5,10 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HTMLParser;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
+import org.apache.commons.mail.util.MimeMessageParser;
 import org.mockserver.client.MockServerClient;
 
+import javax.mail.internet.MimeMessage;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +37,8 @@ public abstract class AbstractTestCase {
     protected static final String HTML_TABLE_CELLS_SUCCESS = "//td[@class='http-success']";
     protected static final String HTML_TABLE_CELLS_ERROR = "//td[@class='http-error']";
     protected static final String HTML_TABLE_CELLS_UNKNOWN = "//td[@class='http-unknown']";
+    protected static final String FAILED_TEXT= "FAILED";
+
 
     protected boolean checkHtmlTemplateHasErrors(final String htmlTemplate) {
         try {
@@ -50,6 +54,13 @@ public abstract class AbstractTestCase {
             ex.printStackTrace();
         }
         return false;
+    }
+
+    protected boolean checkPlainTextEmailHasErrors(final MimeMessage mimeMessage) throws Exception {
+        final String emailContent =  new MimeMessageParser(mimeMessage)
+                .parse()
+                .getPlainContent();
+        return (emailContent.contains(FAILED_TEXT)) ? true : false;
     }
 
     protected void createExpectationForAliveService() {

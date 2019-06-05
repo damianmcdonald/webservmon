@@ -14,7 +14,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+@Component("httpMailer")
 public class HttpMailer implements Mailer<String, HttpStatus> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpMailer.class);

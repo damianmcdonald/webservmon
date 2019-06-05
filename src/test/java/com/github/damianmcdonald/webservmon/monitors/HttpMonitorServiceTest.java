@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +29,8 @@ public class HttpMonitorServiceTest extends AbstractTestCase {
     private static ClientAndServer mockServer;
 
     @Autowired
-    private HttpMonitorService monitorService;
+    @Qualifier("httpMonitorService")
+    private MonitorService monitorService;
 
     @Value("${http.service.urls}")
     private String[] urls;

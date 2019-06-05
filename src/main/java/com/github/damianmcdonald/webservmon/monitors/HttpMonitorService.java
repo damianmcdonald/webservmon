@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-@Service
+@Service("httpMonitorService")
 public class HttpMonitorService implements MonitorService<String, HttpStatus> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpMonitorService.class);

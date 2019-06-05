@@ -10,12 +10,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
+@Service("httpScheduler")
 public class HttpScheduler implements Scheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpScheduler.class);

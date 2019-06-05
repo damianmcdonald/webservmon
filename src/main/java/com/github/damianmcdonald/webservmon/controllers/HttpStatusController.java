@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestController
+@RestController("httpStatusController")
 public class HttpStatusController implements StatusController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpStatusController.class);
