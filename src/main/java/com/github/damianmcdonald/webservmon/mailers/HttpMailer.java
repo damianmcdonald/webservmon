@@ -1,5 +1,6 @@
-package com.github.damianmcdonald.webservmon;
+package com.github.damianmcdonald.webservmon.mailers;
 
+import com.github.damianmcdonald.webservmon.templators.Templator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +14,14 @@ import javax.mail.internet.MimeMessage;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
-public class Mailer {
+@Component("httpMailer")
+public class HttpMailer implements Mailer<String, HttpStatus> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Mailer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpMailer.class);
 
     private static final String RESULT_KEY = "results";
 
-    private final static String TEMPLATE_FILE = "report-text.ftl";
+    private final static String TEMPLATE_FILE = "http-report-text.ftl";
 
     @Autowired
     private JavaMailSender javaMailSender;
@@ -28,16 +29,16 @@ public class Mailer {
     @Autowired
     private Templator templator;
 
-    @Value("${mail.from}")
+    @Value("${http.mail.from}")
     private String mailFrom;
 
-    @Value("${mail.to}")
+    @Value("${http.mail.to}")
     private String[] mailTo;
 
-    @Value("${mail.subject.alive}")
+    @Value("${http.mail.subject.alive}")
     private String mailAliveSubject;
 
-    @Value("${mail.subject.error}")
+    @Value("${http.mail.subject.error}")
     private String mailErrorSubject;
 
     public void sendMail(final boolean hasErrors, final Map<String, HttpStatus> results) {

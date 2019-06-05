@@ -1,4 +1,4 @@
-package com.github.damianmcdonald.webservmon;
+package com.github.damianmcdonald.webservmon.templators;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
