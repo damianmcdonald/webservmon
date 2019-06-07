@@ -2,7 +2,9 @@ package com.github.damianmcdonald.webservmon.mailers;
 
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
 import com.github.damianmcdonald.webservmon.rules.SmtpServerRule;
+import com.icegreen.greenmail.store.FolderException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +37,11 @@ public class HttpMailerTest extends AbstractTestCase {
     @Rule
     public SmtpServerRule smtpServerRule = new SmtpServerRule(2525);
 
+    @Before
+    public void beforeTestRun() throws FolderException {
+        smtpServerRule.purgeMessages();
+    }
+
     @Test
     public void sendMailTestNoErrors() throws Exception {
         final HashMap<String, String> results = new HashMap<>();
@@ -43,11 +50,10 @@ public class HttpMailerTest extends AbstractTestCase {
 
         mailer.sendMail(true, results);
 
-
-        MimeMessage[] receivedMessages = smtpServerRule.getMessages();
+        final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
 
-        MimeMessage email = receivedMessages[0];
+        final MimeMessage email = receivedMessages[0];
 
         Assert.assertEquals(mailErrorSubject, email.getSubject());
         Assert.assertEquals(mailTo[0], email.getAllRecipients()[0].toString());
@@ -63,11 +69,10 @@ public class HttpMailerTest extends AbstractTestCase {
 
         mailer.sendMail(true, results);
 
-
-        MimeMessage[] receivedMessages = smtpServerRule.getMessages();
+        final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
 
-        MimeMessage email = receivedMessages[0];
+        final MimeMessage email = receivedMessages[0];
 
         Assert.assertEquals(mailErrorSubject, email.getSubject());
         Assert.assertEquals(mailTo[0], email.getAllRecipients()[0].toString());

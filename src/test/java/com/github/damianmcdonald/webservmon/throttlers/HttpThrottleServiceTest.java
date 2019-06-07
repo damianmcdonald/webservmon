@@ -2,6 +2,7 @@ package com.github.damianmcdonald.webservmon.throttlers;
 
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,11 @@ public class HttpThrottleServiceTest extends AbstractTestCase {
     @Autowired
     @Qualifier("httpThrottleService")
     private ThrottleService throttleService;
+
+    @Before
+    public void beforeTestRun() {
+        throttleService.resetThrottleInstances();
+    }
 
     @Test
     public void applyThrottleTest() {

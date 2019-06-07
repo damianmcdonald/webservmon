@@ -35,4 +35,5 @@ public class WebservmonApplication {
         factory.setConnectTimeout(url_timeout);
         return factory;
     }
+
 }

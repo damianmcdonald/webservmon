@@ -1,5 +1,6 @@
 package com.github.damianmcdonald.webservmon.rules;
 
+import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetup;
 import org.junit.rules.ExternalResource;
@@ -24,6 +25,10 @@ public class SmtpServerRule extends ExternalResource {
 
     public MimeMessage[] getMessages() {
         return smtpServer.getReceivedMessages();
+    }
+
+    public void purgeMessages() throws FolderException {
+        smtpServer.purgeEmailFromAllMailboxes();
     }
 
     @Override

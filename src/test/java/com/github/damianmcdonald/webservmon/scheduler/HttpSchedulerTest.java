@@ -5,6 +5,7 @@ import com.github.damianmcdonald.webservmon.rules.SmtpServerRule;
 import com.github.damianmcdonald.webservmon.schedulers.Scheduler;
 import com.github.damianmcdonald.webservmon.throttlers.HttpThrottleService;
 import com.github.damianmcdonald.webservmon.throttlers.ThrottleService;
+import com.icegreen.greenmail.store.FolderException;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockserver.integration.ClientAndServer;
@@ -29,6 +30,9 @@ public class HttpSchedulerTest extends AbstractTestCase {
     private static ClientAndServer mockServer;
 
     @Value("${http.mail.subject.alive}")
+    private String mailAliveSubject;
+
+    @Value("${http.mail.subject.error}")
     private String mailErrorSubject;
 
     @Value("${http.mail.to}")
@@ -55,6 +59,12 @@ public class HttpSchedulerTest extends AbstractTestCase {
         mockServer.stop();
     }
 
+    @Before
+    public void beforeTestRun() throws FolderException {
+        smtpServerRule.purgeMessages();
+        throttleService.resetThrottleInstances();
+    }
+
     @Test
     public void checkServiceStatusTest() throws Exception {
         createExpectationForAliveService();
@@ -65,12 +75,24 @@ public class HttpSchedulerTest extends AbstractTestCase {
     public void sendAliveEmailTest() throws Exception {
         createExpectationForAliveService();
         scheduler.sendAliveMail();
-        MimeMessage[] receivedMessages = smtpServerRule.getMessages();
+        final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
-        MimeMessage email = receivedMessages[0];
-        Assert.assertEquals(mailErrorSubject, email.getSubject());
+        final MimeMessage email = receivedMessages[0];
+        Assert.assertEquals(mailAliveSubject, email.getSubject());
         Assert.assertEquals(mailTo[0], email.getAllRecipients()[0].toString());
         Assert.assertFalse(checkPlainTextEmailHasErrors(email));
+    }
+
+    @Test
+    public void sendErrorEmailTest() throws Exception {
+        createExpectationForDeadService();
+        scheduler.checkServiceStatus();
+        final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
+        Assert.assertEquals(1, receivedMessages.length);
+        final MimeMessage email = receivedMessages[0];
+        Assert.assertEquals(mailErrorSubject, email.getSubject());
+        Assert.assertEquals(mailTo[0], email.getAllRecipients()[0].toString());
+        Assert.assertTrue(checkPlainTextEmailHasErrors(email));
     }
 
     @Test
