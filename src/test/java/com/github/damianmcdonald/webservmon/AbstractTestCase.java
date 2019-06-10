@@ -6,41 +6,37 @@ import com.gargoylesoftware.htmlunit.html.HTMLParser;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
 import org.apache.commons.mail.util.MimeMessageParser;
-import org.mockserver.client.MockServerClient;
 
 import javax.mail.internet.MimeMessage;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import static org.mockserver.matchers.Times.exactly;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
+public interface AbstractTestCase {
 
-public abstract class AbstractTestCase {
+    String MOCK_URL = "http://localhost:1080";
+    String TEST_SERVICE_1_URL = "http://localhost:1080/testservice1";
+    String TEST_SERVICE_2_URL = "http://localhost:1080/testservice2";
+    String HTTP_STATUS_SUCCESS = "200";
+    String HTTP_STATUS_ERROR = "503";
+    String HTTP_STATUS_UNKNOWN = "418";
+    String MODEL_RESULTS = "results";
+    String HTML_TABLE_CELLS_SUCCESS = "//td[@class='http-success']";
+    String HTML_TABLE_CELLS_ERROR = "//td[@class='http-error']";
+    String HTML_TABLE_CELLS_UNKNOWN = "//td[@class='http-unknown']";
+    String FAILED_TEXT= "FAILED";
+    int SMTP_PORT = 2525;
+    String FTP_HOSTNAME = "localhost";
+    int FTP_PORT = 2100;
+    String FTP_TM_DIR = "/GR/TM/XML";
+    String FTP_DS_DIR = "/GR/DS/XML";
+    String FTP_VALID_ZIP = FTP_TM_DIR.concat("/12345678.zip");
+    String FTP_VALID_ZIP_NAME = FTP_TM_DIR.concat("/12345678.zip");
+    String FTP_INVALID_ZIP = FTP_TM_DIR.concat("/87654321.zip");
+    String FTP_USERNAME = "ftpuser";
+    String FTP_VALID_PASSWORD = "12345";
+    String FTP_INVALID_PASSWORD = "54321";
 
-    protected static final String MOCK_URL = "http://localhost:1080";
-    protected static final String HTTP_HOSTNAME = "localhost";
-    protected static final int HTTP_PORT = 1080;
-    protected static final String HTTP_METHOD_GET = "GET";
-    protected static final String HTTP_PATH_1 = "/testservice1";
-    protected static final String HTTP_PATH_2 = "/testservice2";
-    protected static final int HTTP_STATUS_SUCCESS_INT = 200;
-    protected static final int HTTP_STATUS_ERROR_INT = 503;
-    protected static final int HTTP_STATUS_UNKNOWN_INT = 418;
-    protected static final String TEST_SERVICE_1_URL = "http://localhost:1080/testservice1";
-    protected static final String TEST_SERVICE_2_URL = "http://localhost:1080/testservice2";
-    protected static final String HTTP_STATUS_SUCCESS = "200";
-    protected static final String HTTP_STATUS_ERROR = "503";
-    protected static final String HTTP_STATUS_UNKNOWN = "418";
-    protected static final String MODEL_RESULTS = "results";
-    protected static final String HTML_TABLE_CELLS_SUCCESS = "//td[@class='http-success']";
-    protected static final String HTML_TABLE_CELLS_ERROR = "//td[@class='http-error']";
-    protected static final String HTML_TABLE_CELLS_UNKNOWN = "//td[@class='http-unknown']";
-    protected static final String FAILED_TEXT= "FAILED";
-
-
-    protected boolean checkHtmlTemplateHasErrors(final String htmlTemplate) {
+    default boolean checkHtmlTemplateHasErrors(final String htmlTemplate) {
         try {
             final StringWebResponse response = new StringWebResponse(htmlTemplate, new URL(MOCK_URL));
             final HtmlPage page = HTMLParser.parseHtml(response, new WebClient().getCurrentWindow());
@@ -56,91 +52,11 @@ public abstract class AbstractTestCase {
         return false;
     }
 
-    protected boolean checkPlainTextEmailHasErrors(final MimeMessage mimeMessage) throws Exception {
+    default boolean checkPlainTextEmailHasErrors(final MimeMessage mimeMessage) throws Exception {
         final String emailContent =  new MimeMessageParser(mimeMessage)
                 .parse()
                 .getPlainContent();
         return (emailContent.contains(FAILED_TEXT)) ? true : false;
     }
 
-    protected void createExpectationForAliveService() {
-        new MockServerClient(HTTP_HOSTNAME, HTTP_PORT)
-                .when(
-                        request()
-                                .withMethod(HTTP_METHOD_GET)
-                                .withPath(HTTP_PATH_1),
-                        exactly(1)
-                )
-                .respond(
-                        response()
-                                .withStatusCode(HTTP_STATUS_SUCCESS_INT)
-                                .withDelay(TimeUnit.SECONDS, 1)
-                );
-        new MockServerClient(HTTP_HOSTNAME, HTTP_PORT)
-                .when(
-                        request()
-                                .withMethod(HTTP_METHOD_GET)
-                                .withPath(HTTP_PATH_2),
-                        exactly(1)
-                )
-                .respond(
-                        response()
-                                .withStatusCode(HTTP_STATUS_SUCCESS_INT)
-                                .withDelay(TimeUnit.SECONDS, 1)
-                );
-    }
-
-    protected void createExpectationForDeadService() {
-        new MockServerClient(HTTP_HOSTNAME, HTTP_PORT)
-                .when(
-                        request()
-                                .withMethod(HTTP_METHOD_GET)
-                                .withPath(HTTP_PATH_1),
-                        exactly(1)
-                )
-                .respond(
-                        response()
-                                .withStatusCode(HTTP_STATUS_ERROR_INT)
-                                .withDelay(TimeUnit.SECONDS, 1)
-                );
-        new MockServerClient(HTTP_HOSTNAME, HTTP_PORT)
-                .when(
-                        request()
-                                .withMethod(HTTP_METHOD_GET)
-                                .withPath(HTTP_PATH_2),
-                        exactly(1)
-                )
-                .respond(
-                        response()
-                                .withStatusCode(HTTP_STATUS_SUCCESS_INT)
-                                .withDelay(TimeUnit.SECONDS, 1)
-                );
-    }
-
-    protected void createExpectationForUnknownService() {
-        new MockServerClient(HTTP_HOSTNAME, HTTP_PORT)
-                .when(
-                        request()
-                                .withMethod(HTTP_METHOD_GET)
-                                .withPath(HTTP_PATH_1),
-                        exactly(1)
-                )
-                .respond(
-                        response()
-                                .withStatusCode(HTTP_STATUS_UNKNOWN_INT)
-                                .withDelay(TimeUnit.SECONDS, 1)
-                );
-        new MockServerClient(HTTP_HOSTNAME, HTTP_PORT)
-                .when(
-                        request()
-                                .withMethod(HTTP_METHOD_GET)
-                                .withPath(HTTP_PATH_2),
-                        exactly(1)
-                )
-                .respond(
-                        response()
-                                .withStatusCode(HTTP_STATUS_SUCCESS_INT)
-                                .withDelay(TimeUnit.SECONDS, 1)
-                );
-    }
 }

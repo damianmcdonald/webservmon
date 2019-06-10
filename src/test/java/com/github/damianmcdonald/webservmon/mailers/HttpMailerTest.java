@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.mail.internet.MimeMessage;
@@ -22,7 +21,7 @@ import java.util.HashMap;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
-public class HttpMailerTest extends AbstractTestCase {
+public class HttpMailerTest implements AbstractTestCase {
 
     @Value("${http.mail.subject.error}")
     private String mailErrorSubject;
@@ -35,7 +34,7 @@ public class HttpMailerTest extends AbstractTestCase {
     private Mailer mailer;
 
     @Rule
-    public SmtpServerRule smtpServerRule = new SmtpServerRule(2525);
+    public SmtpServerRule smtpServerRule = new SmtpServerRule(SMTP_PORT);
 
     @Before
     public void beforeTestRun() throws FolderException {

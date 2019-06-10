@@ -1,14 +1,12 @@
 package com.github.damianmcdonald.webservmon.monitors;
 
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
+import com.github.damianmcdonald.webservmon.rules.HttpServerRule;
 import org.junit.Assert;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,35 +17,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
-public class HttpMonitorServiceTest extends AbstractTestCase {
-
-    private static ClientAndServer mockServer;
+public class HttpMonitorServiceTest implements AbstractTestCase {
 
     @Autowired
-    @Qualifier("httpMonitorService")
-    private MonitorService monitorService;
+    private HttpMonitorService monitorService;
 
     @Value("${http.service.urls}")
     private String[] urls;
 
-    @BeforeClass
-    public static void startServer() {
-        mockServer = startClientAndServer(HTTP_PORT);
-    }
-
-    @AfterClass
-    public static void stopServer() {
-        mockServer.stop();
-    }
+    @Rule
+    public HttpServerRule httpServerRule = new HttpServerRule(1080);
 
     @Test
     public void checkServiceStatusTestAlive() {
-        createExpectationForAliveService();
+        httpServerRule.createExpectationForAliveService();
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
         final Set<HttpStatus> errors = results
                 .values()
@@ -59,7 +45,7 @@ public class HttpMonitorServiceTest extends AbstractTestCase {
 
     @Test
     public void checkServiceStatusTestDead() {
-        createExpectationForDeadService();
+        httpServerRule.createExpectationForDeadService();
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
         final Set<HttpStatus> errors = results
                 .values()

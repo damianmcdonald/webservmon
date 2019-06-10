@@ -14,7 +14,7 @@ import java.util.HashMap;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
-public class HttpTemplatorTest extends AbstractTestCase {
+public class HttpTemplatorTest implements AbstractTestCase {
 
     private final static String TEMPLATE_FILE = "http-report-html.ftl";
 

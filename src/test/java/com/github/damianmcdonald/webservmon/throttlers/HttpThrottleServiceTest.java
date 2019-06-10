@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
-public class HttpThrottleServiceTest extends AbstractTestCase {
+public class HttpThrottleServiceTest implements AbstractTestCase {
 
     private static final int LOOP_MAX = 25;
     private static final int LOOP_MIN = 0;

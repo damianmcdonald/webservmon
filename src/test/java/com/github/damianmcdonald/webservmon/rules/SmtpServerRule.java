@@ -7,6 +7,7 @@ import org.junit.rules.ExternalResource;
 
 import javax.mail.internet.MimeMessage;
 
+
 public class SmtpServerRule extends ExternalResource {
 
     private GreenMail smtpServer;

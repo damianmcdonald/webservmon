@@ -1,44 +1,32 @@
 package com.github.damianmcdonald.webservmon.controllers;
 
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
+import com.github.damianmcdonald.webservmon.rules.HttpServerRule;
 import org.junit.Assert;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
-public class HttpStatusControllerTest extends AbstractTestCase {
-
-    private static ClientAndServer mockServer;
+public class HttpStatusControllerTest implements AbstractTestCase {
 
     @Autowired
     @Qualifier("httpStatusController")
     private StatusController statusController;
 
-    @BeforeClass
-    public static void startServer() {
-        mockServer = startClientAndServer(HTTP_PORT);
-    }
-
-    @AfterClass
-    public static void stopServer() {
-        mockServer.stop();
-    }
+    @Rule
+    public HttpServerRule httpServerRule = new HttpServerRule(1080);
 
     @Test
     public void statusAliveTest() {
-        createExpectationForAliveService();
+        httpServerRule.createExpectationForAliveService();
         final String template = statusController.status();
         Assert.assertNotNull(template);
         Assert.assertFalse(checkHtmlTemplateHasErrors(template));
@@ -46,7 +34,7 @@ public class HttpStatusControllerTest extends AbstractTestCase {
 
     @Test
     public void statusDeadTest() {
-        createExpectationForDeadService();
+        httpServerRule.createExpectationForDeadService();
         final String template = statusController.status();
         Assert.assertNotNull(template);
         Assert.assertTrue(checkHtmlTemplateHasErrors(template));
@@ -54,7 +42,7 @@ public class HttpStatusControllerTest extends AbstractTestCase {
 
     @Test
     public void statusUnknownTest() {
-        createExpectationForUnknownService();
+        httpServerRule.createExpectationForUnknownService();
         final String template = statusController.status();
         Assert.assertNotNull(template);
         Assert.assertTrue(checkHtmlTemplateHasErrors(template));

@@ -1,12 +1,16 @@
 package com.github.damianmcdonald.webservmon.scheduler;
 
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
+import com.github.damianmcdonald.webservmon.rules.HttpServerRule;
 import com.github.damianmcdonald.webservmon.rules.SmtpServerRule;
 import com.github.damianmcdonald.webservmon.schedulers.Scheduler;
 import com.github.damianmcdonald.webservmon.throttlers.HttpThrottleService;
 import com.github.damianmcdonald.webservmon.throttlers.ThrottleService;
 import com.icegreen.greenmail.store.FolderException;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +21,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.mail.internet.MimeMessage;
-
 import java.time.Instant;
-
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
-public class HttpSchedulerTest extends AbstractTestCase {
+public class HttpSchedulerTest implements AbstractTestCase {
 
     private static ClientAndServer mockServer;
 
@@ -49,15 +50,8 @@ public class HttpSchedulerTest extends AbstractTestCase {
     @Rule
     public SmtpServerRule smtpServerRule = new SmtpServerRule(2525);
 
-    @BeforeClass
-    public static void startServer() {
-        mockServer = startClientAndServer(HTTP_PORT);
-    }
-
-    @AfterClass
-    public static void stopServer() {
-        mockServer.stop();
-    }
+    @Rule
+    public HttpServerRule httpServerRule = new HttpServerRule(1080);
 
     @Before
     public void beforeTestRun() throws FolderException {
@@ -67,13 +61,13 @@ public class HttpSchedulerTest extends AbstractTestCase {
 
     @Test
     public void checkServiceStatusTest() throws Exception {
-        createExpectationForAliveService();
+        httpServerRule.createExpectationForAliveService();
         scheduler.checkServiceStatus();
     }
 
     @Test
     public void sendAliveEmailTest() throws Exception {
-        createExpectationForAliveService();
+        httpServerRule.createExpectationForAliveService();
         scheduler.sendAliveMail();
         final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
@@ -85,7 +79,7 @@ public class HttpSchedulerTest extends AbstractTestCase {
 
     @Test
     public void sendErrorEmailTest() throws Exception {
-        createExpectationForDeadService();
+        httpServerRule.createExpectationForDeadService();
         scheduler.checkServiceStatus();
         final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
