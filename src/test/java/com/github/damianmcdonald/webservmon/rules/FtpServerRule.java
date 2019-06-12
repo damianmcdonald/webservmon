@@ -10,10 +10,15 @@ import org.mockftpserver.fake.filesystem.FileEntry;
 import org.mockftpserver.fake.filesystem.FileSystem;
 import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
 
 public class FtpServerRule extends ExternalResource implements AbstractTestCase {
+
+    private static final String FTP_TEST_FILE = "ftp/valid/testfile.zip";
 
     private final FakeFtpServer fakeFtpServer = new FakeFtpServer();
 
@@ -30,28 +35,25 @@ public class FtpServerRule extends ExternalResource implements AbstractTestCase 
         final FileSystem fileSystem = new UnixFakeFileSystem();
         fileSystem.add(new DirectoryEntry(FTP_TM_DIR));
         fileSystem.add(new DirectoryEntry(FTP_DS_DIR));
-        fileSystem.add(new FileEntry(FTP_VALID_ZIP));
 
-    /*
-    http://mockftpserver.sourceforge.net/fakeftpserver-filesystems.html
+        final Path path = Paths.get(new File(this.getClass().getClassLoader().getResource(FTP_TEST_FILE).toURI()).getAbsolutePath());
+        final byte[] bytes = Files.readAllBytes(path);
 
-        DirectoryEntry dirEntry = (DirectoryEntry)fileSystem.getEntry("c:/data");
+        final FileEntry fileEntryTm = new FileEntry(FTP_TM_VALID_ZIP);
+        fileEntryTm.setContents(bytes);
+        fileEntryTm.setLastModified(new Date());
+        fileSystem.add(fileEntryTm);
 
-        FileEntry fileEntry = (FileEntry)fileSystem.getEntry("c:/data/file1.txt");
-
-        FileEntry newFileEntry = (FileEntry)fileSystem.getEntry("c:/data/new.txt");
-        InputStream inputStream = newFileEntry.createInputStream();
-        // read the file contents using inputStream
-        */
-
+        final FileEntry fileEntryDs = new FileEntry(FTP_DS_VALID_ZIP);
+        fileEntryDs.setContents(bytes);
+        fileEntryDs.setLastModified(new Date());
+        fileSystem.add(fileEntryDs);
 
         fakeFtpServer.setFileSystem(fileSystem);
 
         // Create UserAccount with username, password, home-directory
         final UserAccount userAccount = new UserAccount(FTP_USERNAME, FTP_VALID_PASSWORD, "/");
-        final List<UserAccount> userAccounts = new ArrayList();
-        userAccounts.add(userAccount);
-        fakeFtpServer.setUserAccounts(userAccounts);
+        fakeFtpServer.addUserAccount(userAccount);
 
         fakeFtpServer.setServerControlPort(port);
         fakeFtpServer.start();

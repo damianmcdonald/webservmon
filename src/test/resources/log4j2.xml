@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property name="basePath">c:/Devel/temp/logs</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5p %d [%t] %c: %m%n - correlationId=%X{correlationId}"/>
+        </Console>
+
+        <RollingFile name="FileLogger" fileName="${basePath}/webservmon.log" filePattern="${basePath}/webservmon-%d{yyyy-MM-dd}.log">
+            <PatternLayout>
+                <pattern>[%-5p %d [%t] %c: %m%n - correlationId=%X{correlationId}</pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+                <!--   <TimeBasedTriggeringPolicy interval="1" modulate="true" />-->
+            </Policies>
+        </RollingFile>
+
+    </Appenders>
+
+
+    <Loggers>
+
+        <!-- Mule classes -->
+        <AsyncLogger name="com.github.damianmcdonald" level="DEBUG"/>
+
+
+        <AsyncRoot level="INFO" additivity="true">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileLogger"/>
+        </AsyncRoot>
+
+    </Loggers>
+
+</Configuration>

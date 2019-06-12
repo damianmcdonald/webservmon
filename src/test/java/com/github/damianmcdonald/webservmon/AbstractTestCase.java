@@ -25,16 +25,26 @@ public interface AbstractTestCase {
     String HTML_TABLE_CELLS_UNKNOWN = "//td[@class='http-unknown']";
     String FAILED_TEXT= "FAILED";
     int SMTP_PORT = 2525;
-    String FTP_HOSTNAME = "localhost";
+    String FTP_VALID_HOSTNAME = "localhost";
+    String FTP_INVALID_HOSTNAME = "INVALID";
     int FTP_PORT = 2100;
     String FTP_TM_DIR = "/GR/TM/XML";
     String FTP_DS_DIR = "/GR/DS/XML";
-    String FTP_VALID_ZIP = FTP_TM_DIR.concat("/12345678.zip");
-    String FTP_VALID_ZIP_NAME = FTP_TM_DIR.concat("/12345678.zip");
-    String FTP_INVALID_ZIP = FTP_TM_DIR.concat("/87654321.zip");
+    String FTP_TM_VALID_ZIP = FTP_TM_DIR.concat("/tmzip.zip");
+    String FTP_DS_VALID_ZIP = FTP_DS_DIR.concat("/dszip.zip");
+    String FTP_INVALID_ZIP = FTP_DS_DIR.concat("/badzip.zip");
     String FTP_USERNAME = "ftpuser";
     String FTP_VALID_PASSWORD = "12345";
     String FTP_INVALID_PASSWORD = "54321";
+    String FTP_ROOT_DIR = "/GR";
+    String FTP_VALID_UPLOAD_DIR = "/DS/XML";
+    String FTP_INVALID_UPLOAD_DIR = "/DS/XML/INVALID";
+    String FTP_UPLOAD_FORMAT = "zip";
+    String FTP_DOWNLOAD_DIR = "C:/temp/ftp";
+    long FTP_COMPAREDATE_MINUS_DAYS = 1;
+    int FTP_COMPAREDATE_WITH_HOURS = 23;
+    int FTP_COMPAREDATE_WITH_MINUTES = 55;
+    int FTP_COMPAREDATE_WITH_SECONDS = 00;
 
     default boolean checkHtmlTemplateHasErrors(final String htmlTemplate) {
         try {
