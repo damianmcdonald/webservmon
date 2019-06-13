@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-@RestController("httpStatusController")
-public class HttpStatusController implements StatusController {
+@RestController
+public class HttpStatusController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpStatusController.class);
 
@@ -35,10 +36,15 @@ public class HttpStatusController implements StatusController {
 
     @RequestMapping(value = "/http-status", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
     public String status() {
-        LOGGER.debug("Executing http-status controller.");
+        LOGGER.debug(">>> Entering method");
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
+        LOGGER.info("Results of web service status checks;",
+                results.keySet().stream()
+                .map(key -> String.format("%s = %s", key, results.get(key)))
+                .collect(Collectors.joining(", ", "{", "}")));
         final HashMap model = new HashMap();
         model.put(RESULT_KEY, results);
+        LOGGER.debug("<<< Exiting method");
         return templator.getMergedTemplate(model, TEMPLATE_FILE);
     }
 }

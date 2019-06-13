@@ -1,6 +1,5 @@
 package com.github.damianmcdonald.webservmon.rules;
 
-
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
 import org.junit.rules.ExternalResource;
 import org.mockftpserver.fake.FakeFtpServer;

@@ -43,18 +43,18 @@ public abstract class FtpSettings {
     @Value("${ftp.comparedate.with.seconds}")
     private int ftpCompareDateWithSeconds;
 
-    private LocalDateTime oldestDate;
+    private LocalDateTime dateComparisonWindow;
 
-    public LocalDateTime getOldestDate() {
-        if(this.oldestDate == null) {
-            this.oldestDate = LocalDateTime
+    public LocalDateTime getDateComparisonWindow() {
+        if(this.dateComparisonWindow == null) {
+            this.dateComparisonWindow = LocalDateTime
                     .ofInstant(Instant.now(), ZoneId.systemDefault())
                     .minusDays(getFtpCompareDateMinusDays())
                     .withHour(getFtpCompareDateWithHours())
                     .withMinute(getFtpCompareDateWithMinutes())
                     .withSecond(getFtpCompareDateWithSeconds());
         }
-        return oldestDate;
+        return dateComparisonWindow;
     }
 
     public abstract String getFtpUploadDirectory();

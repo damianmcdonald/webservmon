@@ -124,7 +124,7 @@ public class FtpMonitorServiceTest implements AbstractTestCase {
                 .withHour(FTP_COMPAREDATE_WITH_HOURS)
                 .withMinute(FTP_COMPAREDATE_WITH_MINUTES)
                 .withSecond(FTP_COMPAREDATE_WITH_SECONDS);
-        Mockito.when(mockFtpSettıngs.getOldestDate()).thenReturn(dateTime);
+        Mockito.when(mockFtpSettıngs.getDateComparisonWindow()).thenReturn(dateTime);
         final List<String> ftpFiles = monitorService.ftpLogon.andThen(monitorService.ftpFilesCheck).apply(mockFtpSettıngs);
         Assert.assertFalse(ftpFiles.isEmpty());
         Assert.assertTrue(ftpFiles.size() == 1);
@@ -153,7 +153,7 @@ public class FtpMonitorServiceTest implements AbstractTestCase {
                 .withHour(FTP_COMPAREDATE_WITH_HOURS)
                 .withMinute(FTP_COMPAREDATE_WITH_MINUTES)
                 .withSecond(FTP_COMPAREDATE_WITH_SECONDS);
-        Mockito.when(mockFtpSettıngs.getOldestDate()).thenReturn(dateTime);
+        Mockito.when(mockFtpSettıngs.getDateComparisonWindow()).thenReturn(dateTime);
         final List<String> ftpFiles = monitorService.ftpLogon.andThen(monitorService.ftpFilesCheck).apply(mockFtpSettıngs);
         Assert.assertFalse(ftpFiles.isEmpty());
         Assert.assertTrue(ftpFiles.size() == 1);
@@ -182,7 +182,7 @@ public class FtpMonitorServiceTest implements AbstractTestCase {
                 .withHour(FTP_COMPAREDATE_WITH_HOURS)
                 .withMinute(FTP_COMPAREDATE_WITH_MINUTES)
                 .withSecond(FTP_COMPAREDATE_WITH_SECONDS);
-        Mockito.when(mockFtpSettıngs.getOldestDate()).thenReturn(dateTime);
+        Mockito.when(mockFtpSettıngs.getDateComparisonWindow()).thenReturn(dateTime);
         final List<String> ftpFiles = monitorService.ftpLogon.andThen(monitorService.ftpFilesCheck).apply(mockFtpSettıngs);
         Assert.assertFalse(ftpFiles.isEmpty());
         Assert.assertTrue(ftpFiles.size() == 1);
@@ -226,7 +226,7 @@ public class FtpMonitorServiceTest implements AbstractTestCase {
                 .withHour(FTP_COMPAREDATE_WITH_HOURS)
                 .withMinute(FTP_COMPAREDATE_WITH_MINUTES)
                 .withSecond(FTP_COMPAREDATE_WITH_SECONDS);
-        Mockito.when(mockFtpSettıngs.getOldestDate()).thenReturn(dateTime);
+        Mockito.when(mockFtpSettıngs.getDateComparisonWindow()).thenReturn(dateTime);
         final String downloadDir = monitorService.ftpLogon
                 .andThen(monitorService.ftpFilesCheck)
                 .andThen(monitorService.ftpFilesDownload)

@@ -54,6 +54,11 @@ public class FtpMonitorService {
     private String ftpUploadFormat;
 
     public Result checkServiceStatus(FtpSettings ftpSettings) {
+        LOGGER.info(String.format(
+                ">>> Beginning FTP status check with parameters: ftpSettings=%s",
+                ftpSettings
+        )
+        );
         return ftpLogon
                 .andThen(ftpFilesCheck)
                 .andThen(ftpFilesDownload)
@@ -63,40 +68,75 @@ public class FtpMonitorService {
     }
 
     protected Function<FtpSettings, FtpSettings> ftpLogon = ftp -> {
+        LOGGER.debug(String.format(">>> Entering function ftpLogin with parameters: ftp=%s", ftp));
         try {
-            // do logon
             ftpClient.connect(ftp.getFtpHostname(), ftp.getFtpPort());
-            if(!ftpClient.login(ftp.getFtpUsername(), ftp.getFtpPassword())) {
+            LOGGER.info(String.format("FTP connection to ftp://%s:%d made successfully.", ftp.getFtpHostname(), ftp.getFtpPort()));
+            if (!ftpClient.login(ftp.getFtpUsername(), ftp.getFtpPassword())) {
                 final String error = String.format(
-                        "FTP login failed using username: %s and password: %s",
-                        ftp.getFtpUsername(),
-                        ftp.getFtpPassword());
-                LOGGER.error(error);
+                        "FTP login failed for username: %s",
+                        ftp.getFtpUsername()
+                );
+                LOGGER.error(">>> An error has occurred.", error);
                 throw new RuntimeException(error);
             }
+            LOGGER.info(String.format("FTP login with user: %s accepted.", ftp.getFtpUsername()));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+        LOGGER.debug("<<< Exiting function ftpLogin");
         return ftp;
     };
 
     protected Function<FtpSettings, List<String>> ftpFilesCheck = ftp -> {
+        LOGGER.debug(String.format(">>> Entering function ftpFilesCheck with parameters: ftp=%s", ftp));
         ThreadContext.put(KEY_FTP_PATH, ftp.getFtpRootDirectory().concat(ftp.getFtpUploadDirectory()));
         List<String> ftpFiles = null;
         try {
-            //list file
+            LOGGER.info(String.format("Checking for files at ftp path: %s", ftp.getFtpRootDirectory().concat(ftp.getFtpUploadDirectory())));
             ftpFiles = Arrays.stream(ftpClient.listFiles(ftp.getFtpRootDirectory().concat(ftp.getFtpUploadDirectory())))
-                    .filter(f -> f.isFile())
-                    .filter(f -> LocalDateTime.ofInstant(
-                                    f.getTimestamp().toInstant(),
-                                    ZoneId.systemDefault())
-                                .isAfter(ftp.getOldestDate())
+                    .filter(f -> {
+                        LOGGER.info(
+                                String.format("Verify that file (%s) is of type file: %b",
+                                        f.getName(),
+                                        f.isFile()
+                                )
+                        );
+                        return f.isFile();
+                    }
                     )
-                    .filter(f -> f.getName().endsWith(ftpUploadFormat))
+                    .filter(f -> {
+                        final LocalDateTime compareDate = LocalDateTime.ofInstant(
+                                f.getTimestamp().toInstant(),
+                                ZoneId.systemDefault());
+                        final boolean isValidDate = LocalDateTime.ofInstant(
+                                f.getTimestamp().toInstant(),
+                                ZoneId.systemDefault())
+                                .isAfter(ftp.getDateComparisonWindow());
+                        LOGGER.info(
+                                String.format("Is file (%s) timestamp (%s) after valid date window (%s): %b",
+                                        f.getName(),
+                                        f.getTimestamp(),
+                                        compareDate,
+                                        isValidDate
+                                )
+                        );
+                        return isValidDate;
+                    }
+                    )
+                    .filter(f -> {
+                        LOGGER.info(String.format("Does file (%s) name end with %s: %b",
+                                f.getName(),
+                                ftpUploadFormat,
+                                f.getName().endsWith(ftpUploadFormat)
+                        )
+                        );
+                        return f.getName().endsWith(ftpUploadFormat);
+                    })
                     .map(f -> f.getName())
                     .collect(Collectors.toList());
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             throw new RuntimeException(ex);
         }
 
@@ -107,94 +147,155 @@ public class FtpMonitorService {
                                     ftp.getFtpHostname(),
                                     ftp.getFtpPort(),
                                     ftp.getFtpRootDirectory().concat(ftp.getFtpUploadDirectory()),
-                                    ftp.getOldestDate()
+                                    ftp.getDateComparisonWindow()
                             )
                     )
             );
         }
+        LOGGER.debug(String.format(
+                "<<< Exiting function ftpFilesCheck with values: %s",
+                ftpFiles.stream().collect(Collectors.joining(", "))
+        )
+        );
         return ftpFiles;
     };
 
     protected Function<List<String>, String> ftpFilesDownload = ftpFiles -> {
+        LOGGER.debug(
+                String.format(
+                        ">>> Entering function ftpFilesDownload with parameters: ftpFiles=%s",
+                        ftpFiles.stream().collect(Collectors.joining(", ")))
+        );
         final String correlationId = ThreadContext.get(KEY_CORRELATION_ID);
         final String ftpPath = ThreadContext.get(KEY_FTP_PATH);
         final File downloadDir = new File(Paths.get(System.getProperty(TEMP_DIR_SYS_PROP)).toFile(), correlationId);
         downloadDir.mkdir();
-            ftpFiles.stream().forEach(ftpFile -> {
-                final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                try {
-                    boolean success = ftpClient.retrieveFile(ftpPath.concat(FTP_DIR_SEPARATOR).concat(ftpFile), byteArrayOutputStream);
-                    try (final OutputStream outputStream = new FileOutputStream(
-                            downloadDir.getAbsolutePath()
-                                    .concat(File.separator)
-                                    .concat(ftpFile)
-                    )) {
-                        byteArrayOutputStream.writeTo(outputStream);
-                    }
-                    if (!success) {
-                        final String errorString = String.format("Failed to download file %s", ftpFile);
-                        appendValueToMdcKey(KEY_ERRORS_DOWNLOAD, errorString);
-                        LOGGER.error(errorString);
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    appendValueToMdcKey(KEY_ERRORS_DOWNLOAD, ExceptionUtils.getStackTrace(ex));
-                    LOGGER.error(String.format("Failed to download file %s", ftpFile));
+        LOGGER.info(String.format("Created directory for downloading files: %s", downloadDir));
+        ftpFiles.stream().forEach(ftpFile -> {
+            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            try {
+                LOGGER.info(
+                        String.format(
+                                "Attempting to download %s to %s",
+                                ftpPath.concat(FTP_DIR_SEPARATOR).concat(ftpFile),
+                                downloadDir
+                        )
+                );
+                boolean success = ftpClient.retrieveFile(ftpPath.concat(FTP_DIR_SEPARATOR).concat(ftpFile), byteArrayOutputStream);
+                try (final OutputStream outputStream = new FileOutputStream(
+                        downloadDir.getAbsolutePath()
+                                .concat(File.separator)
+                                .concat(ftpFile)
+                )) {
+                    byteArrayOutputStream.writeTo(outputStream);
                 }
-            });
+                if (!success) {
+                    final String errorString = String.format(
+                            "Failed to download file %s to %s",
+                            ftpFile,
+                            downloadDir
+                    );
+                    appendValueToMdcKey(KEY_ERRORS_DOWNLOAD, errorString);
+                    LOGGER.error(errorString);
+                } else {
+                    LOGGER.info(
+                            String.format(
+                                    "Successfully downloaded %s to %s",
+                                    ftpPath.concat(FTP_DIR_SEPARATOR).concat(ftpFile),
+                                    downloadDir
+                            )
+                    );
+                }
+            } catch (Exception ex) {
+                appendValueToMdcKey(KEY_ERRORS_DOWNLOAD, ExceptionUtils.getStackTrace(ex));
+                LOGGER.error(">>> An error has occurred: %s", ex);
+            }
+        });
         try {
             ftpClient.disconnect();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             throw new RuntimeException(ex);
         }
 
-        if(ftpFiles.size() != new File(downloadDir.getAbsolutePath()).listFiles().length) {
-            final String errorString = String.format("Expected number of downloads: %d does not match actual number of downloads: %d"
-                    ,ftpFiles.size()
-                    ,new File(downloadDir.getAbsolutePath()).listFiles().length);
+        if (ftpFiles.size() != new File(downloadDir.getAbsolutePath()).listFiles().length) {
+            final String errorString = String.format("Expected number of downloads: %d does not match actual number of downloads: %d",
+                    ftpFiles.size(),
+                    new File(downloadDir.getAbsolutePath()).listFiles().length);
             appendValueToMdcKey(KEY_ERRORS_DOWNLOAD, errorString);
+            LOGGER.error(errorString);
         }
+        LOGGER.info(String.format("FTP files download to :%s", downloadDir.getAbsolutePath()));
+        LOGGER.debug(String.format(
+                "<<< Exiting function ftpFilesDownload with value: %s",
+                downloadDir.getAbsolutePath()
+        )
+        );
         return downloadDir.getAbsolutePath();
     };
 
     protected Function<String, List<String>> unzipFiles = dir -> {
         return FileUtils.listFiles(
                 new File(dir),
-                new String[] { ftpUploadFormat },
+                new String[]{ftpUploadFormat},
                 false)
                 .stream()
-                .filter(f -> f.isFile())
+                .filter(f -> {
+                    LOGGER.info(
+                            String.format("Verify that file (%s) is of type file: %b",
+                                    f.getName(),
+                                    f.isFile()
+                            )
+                    );
+                    return f.isFile();
+                }
+                )
                 .map(f -> unzip(f.getAbsolutePath(), dir))
                 .collect(Collectors.toList());
     };
 
     protected Function<List<String>, Result> validateZipContents = dirs -> {
-       dirs.stream()
-               .forEach(dir -> {
-                   FileUtils.listFiles(
-                           new File(dir),
-                           new String[] { ftpUploadFormat },
-                           false)
-                           .stream()
-                           .filter(f -> f.isDirectory())
-                           .forEach(file -> {
-                               validateXml(file);
-                           });
+        dirs.stream()
+                .forEach(dir -> {
+                    FileUtils.listFiles(
+                            new File(dir),
+                            new String[]{ftpUploadFormat},
+                            false)
+                            .stream()
+                            .filter(f -> {
+                                LOGGER.info(
+                                        String.format("Verify that file (%s) is of type directory: %b",
+                                                f.getName(),
+                                                f.isDirectory()
+                                        )
+                                );
+                                return f.isDirectory();
+                            }
+                            )
+                            .forEach(file -> {
+                                validateXml(file);
+                            });
 
-               });
-        if(ThreadContext.containsKey(KEY_ERRORS_XML_VALIDATE)) {
+                });
+        if (ThreadContext.containsKey(KEY_ERRORS_XML_VALIDATE)) {
             return Result.WITH_ERRORS;
         }
         return Result.NO_ERRORS;
     };
 
     private String unzip(final String zipFilePath, final String zipFileDestination) {
+        LOGGER.debug(
+                String.format(
+                        ">>> Entering method with parameters: zipFilePath=%s, zipFileDestination=%s",
+                         zipFilePath,
+                         zipFileDestination
+                )
+        );
         final File zipFile = new File(zipFilePath);
         final File destinationDir = new File(
                 zipFileDestination
-                .concat(File.separator)
-                .concat(FilenameUtils.getBaseName(zipFile.getName()))
+                        .concat(File.separator)
+                        .concat(FilenameUtils.getBaseName(zipFile.getName()))
         );
         destinationDir.mkdir();
         final byte[] buffer = new byte[1024];
@@ -213,7 +314,7 @@ public class FtpMonitorService {
                 zipEntry = zis.getNextEntry();
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             appendValueToMdcKey(KEY_ERRORS_UNZIP, ExceptionUtils.getStackTrace(ex));
         } finally {
             try {
@@ -222,10 +323,11 @@ public class FtpMonitorService {
                     zis.close();
                 }
             } catch (IOException ex) {
-                ex.printStackTrace();
+                LOGGER.error(">>> An error has occurred: %s", ex);
                 appendValueToMdcKey(KEY_ERRORS_UNZIP, ExceptionUtils.getStackTrace(ex));
             }
         }
+        LOGGER.info(String.format(">>> Exiting method with file unzipped to %s", destinationDir.getAbsolutePath()));
         return destinationDir.getAbsolutePath();
     }
 
@@ -234,12 +336,18 @@ public class FtpMonitorService {
         final String destDirPath = destinationDir.getCanonicalPath();
         final String destFilePath = destFile.getCanonicalPath();
         if (!destFilePath.startsWith(destDirPath + File.separator)) {
-            throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+            throw new IOException(String.format("Entry is outside of the target dir: %s", zipEntry.getName()));
         }
         return destFile;
     }
 
     private boolean validateXml(final File xmlFile) {
+        LOGGER.debug(
+                String.format(
+                        ">>> Entering method with parameters: xmlFile=%s",
+                         xmlFile
+                )
+        );
         final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         boolean isValid = true;
         factory.setValidating(false);
@@ -248,18 +356,18 @@ public class FtpMonitorService {
         try {
             factory.newDocumentBuilder();
             builder.setErrorHandler(new SimpleErrorHandler());
-            // the "parse" method also validates XML, will throw an exception if misformatted
             builder.parse(new InputSource(xmlFile.getAbsolutePath()));
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             appendValueToMdcKey(KEY_ERRORS_XML_VALIDATE, ExceptionUtils.getStackTrace(ex));
             isValid = false;
         }
+        LOGGER.info(String.format(">>> Exiting method, is %s valid xml: %b", xmlFile, isValid));
         return isValid;
     }
 
     private void appendValueToMdcKey(final String key, final String value) {
-        if(ThreadContext.containsKey(key)) {
+        if (ThreadContext.containsKey(key)) {
             ThreadContext.put(key, ThreadContext.get(key).concat(KEY_SPLITTER).concat(value));
         } else {
             ThreadContext.put(key, value);
@@ -267,21 +375,21 @@ public class FtpMonitorService {
     }
 
     private class SimpleErrorHandler implements ErrorHandler {
+
         public void warning(SAXParseException ex) throws SAXException {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             appendValueToMdcKey(KEY_ERRORS_XML_VALIDATE, ExceptionUtils.getStackTrace(ex));
         }
 
         public void error(SAXParseException ex) throws SAXException {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             appendValueToMdcKey(KEY_ERRORS_XML_VALIDATE, ExceptionUtils.getStackTrace(ex));
         }
 
         public void fatalError(SAXParseException ex) throws SAXException {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             appendValueToMdcKey(KEY_ERRORS_XML_VALIDATE, ExceptionUtils.getStackTrace(ex));
         }
     }
 
 }
-

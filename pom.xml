@@ -138,13 +138,6 @@
             <version>2.21.0</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.jmockit/jmockit -->
-        <dependency>
-            <groupId>org.jmockit</groupId>
-            <artifactId>jmockit</artifactId>
-            <version>1.46</version>
-            <scope>test</scope>
-        </dependency>
 
     </dependencies>
 

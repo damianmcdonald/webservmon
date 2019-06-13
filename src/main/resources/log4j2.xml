@@ -17,15 +17,11 @@
                 <!--   <TimeBasedTriggeringPolicy interval="1" modulate="true" />-->
             </Policies>
         </RollingFile>
-
     </Appenders>
-
 
     <Loggers>
 
-        <!-- Mule classes -->
         <AsyncLogger name="com.github.damianmcdonald" level="DEBUG"/>
-
 
         <AsyncRoot level="INFO" additivity="true">
             <AppenderRef ref="Console"/>

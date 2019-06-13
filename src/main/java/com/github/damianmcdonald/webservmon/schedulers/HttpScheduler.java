@@ -1,25 +1,28 @@
 package com.github.damianmcdonald.webservmon.schedulers;
 
-import com.github.damianmcdonald.webservmon.throttlers.HttpThrottleService;
 import com.github.damianmcdonald.webservmon.mailers.HttpMailer;
 import com.github.damianmcdonald.webservmon.monitors.HttpMonitorService;
+import com.github.damianmcdonald.webservmon.throttlers.HttpThrottleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.ThreadContext;
 
-@Service("httpScheduler")
-public class HttpScheduler implements Scheduler {
+@Service
+public class HttpScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpScheduler.class);
+
+    private static final String KEY_CORRELATION_ID = "CORRELATION_ID";
 
     @Autowired
     private HttpMonitorService monitorService;
@@ -35,6 +38,9 @@ public class HttpScheduler implements Scheduler {
 
     @Scheduled(cron = "${http.schedule.statuscheck.interval}")
     public void checkServiceStatus() {
+        final String correlationId = UUID.randomUUID().toString();
+        ThreadContext.put(KEY_CORRELATION_ID, correlationId);
+
         LOGGER.debug("Executing checkServiceStatus scheduled task.");
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
         final Set<HttpStatus> errors = results
@@ -55,14 +61,25 @@ public class HttpScheduler implements Scheduler {
         }
         LOGGER.debug("Web service checks passed with no errors, not sending mail.");
         throttleService.decrementThrottleInstance();
+
+        if (ThreadContext.get(KEY_CORRELATION_ID).equalsIgnoreCase(correlationId)) {
+            ThreadContext.clearStack();
+        }
     }
 
     @Scheduled(cron = "${http.schedule.alive.cron}")
     public void sendAliveMail() {
+        final String correlationId = UUID.randomUUID().toString();
+        ThreadContext.put(KEY_CORRELATION_ID, correlationId);
+
         LOGGER.debug("Executing sendAliveMail scheduled task.");
         final Map<String, HttpStatus> results = monitorService.checkServiceStatus(urls);
         LOGGER.debug("Sending ALIVE mail.");
         mailer.sendMail(false, results);
+
+        if (ThreadContext.get(KEY_CORRELATION_ID).equalsIgnoreCase(correlationId)) {
+            ThreadContext.clearStack();
+        }
     }
 
     @Scheduled(cron = "${http.throttle.threshold.period}")

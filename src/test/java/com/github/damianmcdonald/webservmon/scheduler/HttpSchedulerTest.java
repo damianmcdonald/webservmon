@@ -3,18 +3,15 @@ package com.github.damianmcdonald.webservmon.scheduler;
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
 import com.github.damianmcdonald.webservmon.rules.HttpServerRule;
 import com.github.damianmcdonald.webservmon.rules.SmtpServerRule;
-import com.github.damianmcdonald.webservmon.schedulers.Scheduler;
+import com.github.damianmcdonald.webservmon.schedulers.HttpScheduler;
 import com.github.damianmcdonald.webservmon.throttlers.HttpThrottleService;
-import com.github.damianmcdonald.webservmon.throttlers.ThrottleService;
 import com.icegreen.greenmail.store.FolderException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockserver.integration.ClientAndServer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +25,6 @@ import java.time.Instant;
 @EnableConfigurationProperties
 public class HttpSchedulerTest implements AbstractTestCase {
 
-    private static ClientAndServer mockServer;
-
     @Value("${http.mail.subject.alive}")
     private String mailAliveSubject;
 
@@ -40,12 +35,10 @@ public class HttpSchedulerTest implements AbstractTestCase {
     private String[] mailTo;
 
     @Autowired
-    @Qualifier("httpScheduler")
-    private Scheduler scheduler;
+    private HttpScheduler scheduler;
 
     @Autowired
-    @Qualifier("httpThrottleService")
-    private ThrottleService throttleService;
+    private HttpThrottleService throttleService;
 
     @Rule
     public SmtpServerRule smtpServerRule = new SmtpServerRule(2525);

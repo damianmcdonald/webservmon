@@ -9,8 +9,8 @@ import java.time.Instant;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-@Component("httpThrottleService")
-public class HttpThrottleService implements ThrottleService {
+@Component
+public class HttpThrottleService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpThrottleService.class);
     

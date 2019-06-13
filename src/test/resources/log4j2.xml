@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Properties>
-        <Property name="basePath">c:/Devel/temp/logs</Property>
+        <Property name="basePath">${env:TEMP}/logs</Property>
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
@@ -17,15 +17,11 @@
                 <!--   <TimeBasedTriggeringPolicy interval="1" modulate="true" />-->
             </Policies>
         </RollingFile>
-
     </Appenders>
-
 
     <Loggers>
 
-        <!-- Mule classes -->
         <AsyncLogger name="com.github.damianmcdonald" level="DEBUG"/>
-
 
         <AsyncRoot level="INFO" additivity="true">
             <AppenderRef ref="Console"/>
