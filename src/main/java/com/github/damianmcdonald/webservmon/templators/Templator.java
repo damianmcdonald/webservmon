@@ -2,6 +2,10 @@ package com.github.damianmcdonald.webservmon.templators;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import java.util.HashMap;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 @Component
 public class Templator {
@@ -18,18 +24,46 @@ public class Templator {
     @Autowired
     private Configuration freemarkerConfig;
 
-    public String getMergedTemplate(final HashMap model,final String templateFile) {
+    public String getMergedTemplate(final HashMap model, final String templateFile) {
+        LOGGER.debug(">>> Entering method");
+        LOGGER.info(String.format(
+                ">>> Beginning template merge with parameters: model=%s, templateFile=%s",
+                model.keySet().stream()
+                        .map(key -> String.format("%s = %s", key, model.get(key)))
+                        .collect(Collectors.joining(", ", "{", "}")),
+                 templateFile
+        )
+        );
         try {
             final Template t = freemarkerConfig.getTemplate(templateFile);
             final String mergedTemplate = FreeMarkerTemplateUtils.processTemplateIntoString(t, model);
-            LOGGER.debug(String.format("Merged template %s with following model:", templateFile));
-            model.forEach((k, v) -> LOGGER.debug(String.format("Key %s : Value %s", k, v)));
-            LOGGER.trace(String.format("Dumping the merged template: %n %s", mergedTemplate));
+            writeTemplateToFile(mergedTemplate);
             return FreeMarkerTemplateUtils.processTemplateIntoString(t, model);
         } catch (Exception ex) {
-            ex.getMessage();
-            LOGGER.error("An error has ocurred.", ex);
+            LOGGER.error(">>> An error has ocurred.", ex);
             throw new RuntimeException((ex.getMessage()));
+        }
+    }
+    
+    private void writeTemplateToFile(final String mergedTemplate) {
+        LOGGER.debug(">>> Entering method");
+        BufferedWriter writer = null;
+        final String fileExtension = (mergedTemplate.toLowerCase().contains("html")) ? ".html" : ".txt";
+        try {
+            final File tempFile = File.createTempFile(Integer.toString(new Random().nextInt()), fileExtension);
+            writer = new BufferedWriter(new FileWriter(tempFile));
+            writer.write(mergedTemplate);
+            LOGGER.info(String.format(">>> Merged template can be viewed at %s", tempFile));
+            LOGGER.debug("<<< Exiting method");
+        } catch (Exception ex) {
+            LOGGER.error(">>> An error has ocurred.", ex);
+        } finally {
+            try {
+                if (writer != null) writer.close();
+                LOGGER.debug("<<< Exiting method");
+            } catch (IOException ex) {
+                LOGGER.error(">>> An error has ocurred.", ex);
+            }
         }
     }
 }

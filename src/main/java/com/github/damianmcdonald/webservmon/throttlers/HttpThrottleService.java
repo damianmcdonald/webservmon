@@ -13,40 +13,87 @@ import java.util.concurrent.BlockingQueue;
 public class HttpThrottleService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpThrottleService.class);
-    
+
     public static final BlockingQueue<Instant> THROTTLE_INSTANCES = new ArrayBlockingQueue<Instant>(100);
-    
+
     @Value("${http.throttleable.instance.threshold}")
     private int throttleThreshold;
 
-    public boolean applyThrottle(){
-      LOGGER.debug(String.format("Throttle threshold == %d", throttleThreshold));
-      if (THROTTLE_INSTANCES.size() >= throttleThreshold) return true;
-      LOGGER.debug("Throttle threshold has not been breached. Incrementing throttleable instances.");
+    public boolean applyThrottle() {
+        LOGGER.debug(">>> Entering method");
+        LOGGER.info(
+                String.format(
+                        ">>> Current throttle instances: %d, throttle threshold: %d",
+                        THROTTLE_INSTANCES.size(),
+                        throttleThreshold
+                )
+        );
+        if (THROTTLE_INSTANCES.size() >= throttleThreshold) {
+            LOGGER.info(">>> Throttle threshold has been breached. No need to increment.");
+            return true;
+        }
         try {
+            LOGGER.debug("Throttle threshold has not been breached. Incrementing throttleable instances.");
             THROTTLE_INSTANCES.put(Instant.now());
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             throw new RuntimeException(ex.getMessage());
         }
-        LOGGER.debug(String.format("Current throttleable instances == %d", THROTTLE_INSTANCES.size()));
-      return false;
+        LOGGER.info(
+                String.format(
+                        ">>> Current throttle instances: %d, throttle threshold: %d",
+                        THROTTLE_INSTANCES.size(),
+                        throttleThreshold
+                )
+        );
+        LOGGER.debug("<<< Exiting method");
+        return false;
     }
-    
+
     public void decrementThrottleInstance() {
-      if (THROTTLE_INSTANCES.isEmpty()) return;
+        LOGGER.debug(">>> Entering method");
+        if (THROTTLE_INSTANCES.isEmpty()) {
+            LOGGER.info(
+                String.format(
+                        ">>> Current throttle instances: %d, Throttle instances is empty.",
+                        THROTTLE_INSTANCES.size()
+                )
+        );
+            LOGGER.debug("<<< Exiting method");
+            return;
+        }
         try {
             THROTTLE_INSTANCES.take();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.error(">>> An error has occurred: %s", ex);
             throw new RuntimeException(ex.getMessage());
         }
-        LOGGER.debug(String.format("Decrementing throttleable instances. Remaining throttleable instances == %d", THROTTLE_INSTANCES.size()));
+        LOGGER.info(
+                String.format(
+                        ">>> Decremented throttleable instances. Remaining throttleable instances: %d",
+                        THROTTLE_INSTANCES.size()
+                )
+        );
+        LOGGER.debug("<<< Exiting method");
     }
 
     public void resetThrottleInstances() {
-      LOGGER.debug("Clearing remaining throttleable instances.");
-      if(!THROTTLE_INSTANCES.isEmpty()) THROTTLE_INSTANCES.clear();
-      LOGGER.debug(String.format("THROTTLE_INSTANCES is empty == %s", THROTTLE_INSTANCES.isEmpty()));
+        LOGGER.debug(">>> Entering method");
+        if (!THROTTLE_INSTANCES.isEmpty()) {
+            LOGGER.info(
+                String.format(
+                        ">>> Current throttle instances: %d, Throttle instances is empty.",
+                        THROTTLE_INSTANCES.size()
+                )
+        );
+            LOGGER.info(">>> Clearing throttable instances.");
+            THROTTLE_INSTANCES.clear();
+            LOGGER.info(String.format(
+                        ">>> Current throttle instances: %d, Throttle instances is empty.",
+                        THROTTLE_INSTANCES.size()
+                )
+            );
+        }
+        LOGGER.debug("<<< Exiting method");
     }
 }

@@ -28,7 +28,12 @@ public class HttpMonitorService {
     private RestTemplate restTemplate;
 
     public Map<String, HttpStatus> checkServiceStatus(final String[] urls) {
-        LOGGER.debug(String.format("Executing the service status checks for urls: %s", String.join(",", urls)));
+        LOGGER.debug(">>> Entering method");
+        LOGGER.info(String.format(
+                ">>> Beginning HTTP status checks for urls: %s",
+                String.join(",", urls)
+        )
+        );
         return Arrays.stream(urls)
                 .parallel()
                 .collect(HashMap<String, HttpStatus>::new,
@@ -36,20 +41,19 @@ public class HttpMonitorService {
                             try {
                                 m.put(url, new RestTemplate().getForEntity(url, String.class).getStatusCode());
                             } catch (HttpStatusCodeException ex) {
-                                ex.printStackTrace();
+                                LOGGER.error(">>> An error has occurred: %s", ex);
                                 m.put(url, ex.getStatusCode());
                             } catch (ResourceAccessException ex) {
-                                ex.printStackTrace();
-                                if (ex.getCause() != null &&
-                                        (ex.getCause() instanceof ConnectException
-                                                || ex.getCause() instanceof UnknownHostException)
-                                        ) {
+                                LOGGER.error(">>> An error has occurred: %s", ex);
+                                if (ex.getCause() != null
+                                && (ex.getCause() instanceof ConnectException
+                                || ex.getCause() instanceof UnknownHostException)) {
                                     m.put(url, HttpStatus.REQUEST_TIMEOUT);
                                 } else {
                                     m.put(url, HttpStatus.I_AM_A_TEAPOT); // I_AM_A_TEAPOT indicates unknown error
                                 }
                             } catch (Exception ex) {
-                                ex.printStackTrace();
+                                LOGGER.error(">>> An error has occurred: %s", ex);
                                 m.put(url, HttpStatus.I_AM_A_TEAPOT); // I_AM_A_TEAPOT indicates unknown error
                             }
                         },

@@ -3,6 +3,10 @@ package com.github.damianmcdonald.webservmon.mailers;
 import com.github.damianmcdonald.webservmon.AbstractTestCase;
 import com.github.damianmcdonald.webservmon.rules.SmtpServerRule;
 import com.icegreen.greenmail.store.FolderException;
+import java.util.HashMap;
+import java.util.UUID;
+import javax.mail.internet.MimeMessage;
+import org.apache.logging.log4j.ThreadContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,13 +19,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.mail.internet.MimeMessage;
-import java.util.HashMap;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @EnableConfigurationProperties
 public class HttpMailerTest implements AbstractTestCase {
+    
+    private static final String KEY_CORRELATION_ID = "CORRELATION_ID";
 
     @Value("${http.mail.subject.error}")
     private String mailErrorSubject;
@@ -42,6 +45,7 @@ public class HttpMailerTest implements AbstractTestCase {
 
     @Test
     public void sendMailTestNoErrors() throws Exception {
+        ThreadContext.put(KEY_CORRELATION_ID, UUID.randomUUID().toString());
         final HashMap<String, HttpStatus> results = new HashMap<>();
         results.put(TEST_SERVICE_1_URL, HttpStatus.OK);
         results.put(TEST_SERVICE_2_URL, HttpStatus.OK);
@@ -57,6 +61,7 @@ public class HttpMailerTest implements AbstractTestCase {
 
     @Test
     public void sendMailTestWithErrors() throws Exception {
+        ThreadContext.put(KEY_CORRELATION_ID, UUID.randomUUID().toString());
         final HashMap<String, HttpStatus> results = new HashMap<>();
         results.put(TEST_SERVICE_1_URL, HttpStatus.OK);
         results.put(TEST_SERVICE_2_URL, HttpStatus.SERVICE_UNAVAILABLE);

@@ -1,0 +1,8 @@
+# FTP server for testing
+https://github.com/stilliard/docker-pure-ftpd
+
+# HTTP server for testing
+https://hub.docker.com/_/httpd
+
+# Change file access time linux
+https://www.thegeekstuff.com/2012/11/linux-touch-command/?utm_source=feedburner

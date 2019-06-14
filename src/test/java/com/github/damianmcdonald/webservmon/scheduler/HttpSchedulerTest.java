@@ -6,6 +6,8 @@ import com.github.damianmcdonald.webservmon.rules.SmtpServerRule;
 import com.github.damianmcdonald.webservmon.schedulers.HttpScheduler;
 import com.github.damianmcdonald.webservmon.throttlers.HttpThrottleService;
 import com.icegreen.greenmail.store.FolderException;
+import java.time.Instant;
+import javax.mail.internet.MimeMessage;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -16,9 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import javax.mail.internet.MimeMessage;
-import java.time.Instant;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -55,6 +54,17 @@ public class HttpSchedulerTest implements AbstractTestCase {
     @Test
     public void checkServiceStatusTest() throws Exception {
         httpServerRule.createExpectationForAliveService();
+        scheduler.checkServiceStatus();
+    }
+
+    @Test
+    public void checkServiceStatusWithApplyThrottleTest() throws Exception {
+        httpServerRule.createExpectationForAliveService();
+        Assert.assertEquals(0, HttpThrottleService.THROTTLE_INSTANCES.size());
+        for (int i = 0; i < 10; i++) {
+            HttpThrottleService.THROTTLE_INSTANCES.put(Instant.now());
+        }
+        Assert.assertEquals(10, HttpThrottleService.THROTTLE_INSTANCES.size());
         scheduler.checkServiceStatus();
     }
 

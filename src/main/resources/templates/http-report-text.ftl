@@ -1,8 +1,8 @@
 Web Service Monitor Tool - report generated at: ${.now}
 
-Web Service HttpStatus Response
+Web Service HttpStatus Response - session tracked with correlation id: ${results.correlationId}
 
-<#list results as url, status>
+<#list results.statusChecks as url, status>
 <#if status == "200">
 * ${url} -> (${status}) -> passed -> :-)
 <#elseif status == "418">

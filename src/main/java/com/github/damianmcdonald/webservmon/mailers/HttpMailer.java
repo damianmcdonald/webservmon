@@ -1,5 +1,6 @@
 package com.github.damianmcdonald.webservmon.mailers;
 
+import com.github.damianmcdonald.webservmon.domain.HttpMonitorStatus;
 import com.github.damianmcdonald.webservmon.templators.Templator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.ThreadContext;
 
 @Component
 public class HttpMailer {
@@ -23,6 +25,8 @@ public class HttpMailer {
     private static final String RESULT_KEY = "results";
 
     private final static String TEMPLATE_FILE = "http-report-text.ftl";
+    
+    private static final String KEY_CORRELATION_ID = "CORRELATION_ID";
 
     @Autowired
     private JavaMailSender javaMailSender;
@@ -80,7 +84,7 @@ public class HttpMailer {
         );
         final MimeMessage mail = javaMailSender.createMimeMessage();
         final HashMap model = new HashMap();
-        model.put(RESULT_KEY, results);
+        model.put(RESULT_KEY, new HttpMonitorStatus(ThreadContext.get(KEY_CORRELATION_ID), results));
         LOGGER.info(String.format(">>> Objects placed in model for merging: %s into email template: %s",
                         results.keySet().stream()
                                 .map(key -> String.format("%s = %s", key, results.get(key)))

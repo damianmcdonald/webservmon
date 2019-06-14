@@ -41,58 +41,91 @@ public class FtpScheduler {
 
     @Scheduled(cron = "${ftp.schedule.before.threshold.interval.tm}")
     public void checkTmFtpStatusBeforeThreshold() {
-        LOGGER.debug("Executing checkTmFtpStatusBeforeThreshold scheduled task.");
+        LOGGER.debug(">>> Entering method");
+        final String correlationId = UUID.randomUUID().toString();
+        ThreadContext.put(KEY_CORRELATION_ID, correlationId);
+        LOGGER.info(String.format(">>> Start of correlation session: %s", correlationId));
         checkFtpStatus(tmFtpSettings, true, false);
+        if (ThreadContext.get(KEY_CORRELATION_ID).equalsIgnoreCase(correlationId)) {
+            ThreadContext.clearStack();
+        }
+        LOGGER.info(String.format("<<< End of correlation session: %s", correlationId));
+        LOGGER.debug("<<< Exiting method");
     }
 
     @Scheduled(cron = "${ftp.schedule.after.threshold.interval.tm}")
     public void checkTmFtpStatusAfterThreshold() {
-        LOGGER.debug("Executing checkTmFtpStatusAfterThreshold scheduled task.");
+        LOGGER.debug(">>> Entering method");
+        final String correlationId = UUID.randomUUID().toString();
+        ThreadContext.put(KEY_CORRELATION_ID, correlationId);
+        LOGGER.info(String.format(">>> Start of correlation session: %s", correlationId));
         checkFtpStatus(tmFtpSettings, true, true);
+        if (ThreadContext.get(KEY_CORRELATION_ID).equalsIgnoreCase(correlationId)) {
+            ThreadContext.clearStack();
+        }
+        LOGGER.info(String.format("<<< End of correlation session: %s", correlationId));
+        LOGGER.debug("<<< Exiting method");
     }
 
     @Scheduled(cron = "${ftp.schedule.before.threshold.interval.ds}")
     public void checkDsFtpStatusBeforeThreshold() {
-        LOGGER.debug("Executing checkDsFtpStatusBeforeThreshold scheduled task.");
+        LOGGER.debug(">>> Entering method");
+        final String correlationId = UUID.randomUUID().toString();
+        ThreadContext.put(KEY_CORRELATION_ID, correlationId);
+        LOGGER.info(String.format(">>> Start of correlation session: %s", correlationId));
         checkFtpStatus(dsFtpSettings, false, false);
+        if (ThreadContext.get(KEY_CORRELATION_ID).equalsIgnoreCase(correlationId)) {
+            ThreadContext.clearStack();
+        }
+        LOGGER.info(String.format("<<< End of correlation session: %s", correlationId));
+        LOGGER.debug("<<< Exiting method");
     }
 
     @Scheduled(cron = "${ftp.schedule.after.threshold.interval.ds}")
     public void checkDsFtpStatusAfterThreshold() {
-        LOGGER.debug("Executing checkDsFtpStatusAfterThreshold scheduled task.");
+        LOGGER.debug(">>> Entering method");
+        final String correlationId = UUID.randomUUID().toString();
+        ThreadContext.put(KEY_CORRELATION_ID, correlationId);
+        LOGGER.info(String.format(">>> Start of correlation session: %s", correlationId));
         checkFtpStatus(dsFtpSettings, false, true);
+        if (ThreadContext.get(KEY_CORRELATION_ID).equalsIgnoreCase(correlationId)) {
+            ThreadContext.clearStack();
+        }
+        LOGGER.info(String.format("<<< End of correlation session: %s", correlationId));
+        LOGGER.debug("<<< Exiting method");
     }
 
     private void checkFtpStatus(final FtpSettings ftpSettings, final boolean isTrademark, final boolean isFinalResult) {
-        LOGGER.debug("Executing checkFtpStatusBeforeThreshold scheduled task.");
-
-        final String correlationId = UUID.randomUUID().toString();
-        ThreadContext.put(KEY_CORRELATION_ID, correlationId);
-
+        LOGGER.debug(">>> Entering method");
+        LOGGER.info(String.format(
+                ">>> Beginning FTP status check with parameters: ftpSettings=%s, isTrademark=%b, isFinalResult=%b",
+                ftpSettings,
+                isTrademark,
+                isFinalResult
+        )
+        );
         String exceptionString = "";
         try {
             monitorService.checkServiceStatus(ftpSettings);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            exceptionString= ExceptionUtils.getStackTrace(ex);
+            LOGGER.error(">>> An error has occurred: %s", ex);
+            exceptionString = ExceptionUtils.getStackTrace(ex);
         }
-
         mailer.sendMail(createMonitorStatus(exceptionString), isTrademark, isFinalResult);
-
-        if(ThreadContext.get(KEY_CORRELATION_ID).equalsIgnoreCase(correlationId)) {
-            ThreadContext.clearStack();
-        }
+        LOGGER.debug("<<< Exiting method");
     }
 
     private FtpMonitorStatus createMonitorStatus(final String exceptionString) {
-       return new FtpMonitorStatus(
-               ThreadContext.get(KEY_CORRELATION_ID),
-               ThreadContext.get(KEY_SUCCESS),
-               ThreadContext.get(KEY_ERRORS_DOWNLOAD),
-               ThreadContext.get(KEY_ERRORS_UNZIP),
-               ThreadContext.get(KEY_ERRORS_XML_VALIDATE),
-               exceptionString
-       );
+        final FtpMonitorStatus monitorStatus = new FtpMonitorStatus(
+                ThreadContext.get(KEY_CORRELATION_ID),
+                ThreadContext.get(KEY_SUCCESS),
+                ThreadContext.get(KEY_ERRORS_DOWNLOAD),
+                ThreadContext.get(KEY_ERRORS_UNZIP),
+                ThreadContext.get(KEY_ERRORS_XML_VALIDATE),
+                exceptionString
+        );
+        LOGGER.info(String.format(">>> FtpMonitor status: %s", monitorStatus));
+        return monitorStatus;
     }
 
 }

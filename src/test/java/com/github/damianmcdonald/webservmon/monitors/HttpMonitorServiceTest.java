@@ -54,5 +54,17 @@ public class HttpMonitorServiceTest implements AbstractTestCase {
                 .collect(Collectors.toSet());
         Assert.assertFalse(errors.isEmpty());
     }
+    
+    @Test
+    public void checkServiceStatusTestMalformedUrl() {
+        final String[] malformedUrls = new String[]{"ptth:\\somedomain.com:0000"};
+        final Map<String, HttpStatus> results = monitorService.checkServiceStatus(malformedUrls);
+        final Set<HttpStatus> errors = results
+                .values()
+                .stream()
+                .filter(httpStatus -> !httpStatus.is2xxSuccessful())
+                .collect(Collectors.toSet());
+        Assert.assertFalse(errors.isEmpty());
+    }
 
 }

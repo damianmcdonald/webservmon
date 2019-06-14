@@ -6,6 +6,9 @@
     <div style="padding: 10px;">
         <h2>Web Service Monitor Tool - report generated at: ${.now}</h2>
     </div>
+    <div style="padding: 10px;">
+        <h2>Web Service Monitor Tool - session tracked with correlation id: ${results.correlationId}</h2>
+    </div>
     <hr/>
     <div style="padding: 10px;">
         <h3>Web Service HttpStatus Response</h3>
@@ -18,7 +21,7 @@
             </tr>
             </thead>
             <tbody>
-            <#list results as url, status>
+            <#list results.statusChecks as url, status>
             <tr style="border: 1px solid black;">
                 <td style="border: 1px solid black; padding: 5px;">${url}</td>
                     <#if status == "200">
@@ -49,7 +52,7 @@
             </tbody>
         </table>
 
-		<#list results as url, status>
+		<#list results.statusChecks as url, status>
 			<#if status == "418">
 				<p class="http-service-errors" style="color:red;"><span style="font-weight: bold;">*</span> UNKNOWN status indicates that the website did not respond with a valid Http Status code.</p>
 			</#if>
