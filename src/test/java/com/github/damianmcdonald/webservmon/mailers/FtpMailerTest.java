@@ -57,12 +57,14 @@ public class FtpMailerTest implements AbstractTestCase {
     @Test
     public void sendMailValidTmBeforeThresholdTest() throws Exception {
         Mockito.when(monitorStatus.getCorrelationId()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(monitorStatus.isTrademark()).thenReturn(true);
+        Mockito.when(monitorStatus.isFinalResult()).thenReturn(false);
         Mockito.when(monitorStatus.getException()).thenReturn(new String());
         Mockito.when(monitorStatus.getErrorsDownload()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getErrorsUnzip()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getErrorsXmlValidation()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getSuccessMilestones()).thenReturn(getSuccessMilestones());
-        mailer.sendMail(monitorStatus, true, false);
+        mailer.sendMail(monitorStatus);
         final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
         final MimeMessage email = receivedMessages[0];
@@ -74,12 +76,14 @@ public class FtpMailerTest implements AbstractTestCase {
     @Test
     public void sendMailExceptionDsBeforeThresholdTest() throws Exception {
         Mockito.when(monitorStatus.getCorrelationId()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(monitorStatus.isTrademark()).thenReturn(false);
+        Mockito.when(monitorStatus.isFinalResult()).thenReturn(false);
         Mockito.when(monitorStatus.getException()).thenReturn(ExceptionUtils.getStackTrace(new RuntimeException("Test exception message")));
         Mockito.when(monitorStatus.getErrorsDownload()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getErrorsUnzip()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getErrorsXmlValidation()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getSuccessMilestones()).thenReturn(new ArrayList<String>());
-        mailer.sendMail(monitorStatus, false, false);
+        mailer.sendMail(monitorStatus);
         final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
         final MimeMessage email = receivedMessages[0];
@@ -91,12 +95,14 @@ public class FtpMailerTest implements AbstractTestCase {
     @Test
     public void sendMailValidTmAfterThresholdTest() throws Exception {
         Mockito.when(monitorStatus.getCorrelationId()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(monitorStatus.isTrademark()).thenReturn(true);
+        Mockito.when(monitorStatus.isFinalResult()).thenReturn(true);
         Mockito.when(monitorStatus.getException()).thenReturn(new String());
         Mockito.when(monitorStatus.getErrorsDownload()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getErrorsUnzip()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getErrorsXmlValidation()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getSuccessMilestones()).thenReturn(getSuccessMilestones());
-        mailer.sendMail(monitorStatus, true, true);
+        mailer.sendMail(monitorStatus);
         final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
         final MimeMessage email = receivedMessages[0];
@@ -108,12 +114,14 @@ public class FtpMailerTest implements AbstractTestCase {
     @Test
     public void sendMailTmAfterThresholdWithErrorsTest() throws Exception {
         Mockito.when(monitorStatus.getCorrelationId()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(monitorStatus.isTrademark()).thenReturn(true);
+        Mockito.when(monitorStatus.isFinalResult()).thenReturn(true);
         Mockito.when(monitorStatus.getException()).thenReturn(new String());
         Mockito.when(monitorStatus.getErrorsDownload()).thenReturn(getErrorDownloadMessages());
         Mockito.when(monitorStatus.getErrorsUnzip()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getErrorsXmlValidation()).thenReturn(new ArrayList<String>());
         Mockito.when(monitorStatus.getSuccessMilestones()).thenReturn(new ArrayList<String>());
-        mailer.sendMail(monitorStatus, true, true);
+        mailer.sendMail(monitorStatus);
         final MimeMessage[] receivedMessages = smtpServerRule.getMessages();
         Assert.assertEquals(1, receivedMessages.length);
         final MimeMessage email = receivedMessages[0];

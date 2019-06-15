@@ -2,6 +2,16 @@ Web Service Monitor Tool - report generated at: ${.now}
 
 FTP status check results for TRADEMARK : correlation id = ${results.correlationId}
 
+<#if results.finalResult>
+These are the results of the FTP status check AFTER the penalty period is applied.
+
+Given that the penalty period has been applied, these results are provided for information purposes only.
+<#else>
+These are the results of the FTP status check BEFORE the penalty period is applied.
+
+If there are exceptions or errors in the FTP status check, there is still time to rectify the error before the penalty period is applied. 
+</#if> 
+
 <#if results.successMilestones?has_content>
 Success milestones achieved:
 

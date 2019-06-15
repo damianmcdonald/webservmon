@@ -66,5 +66,10 @@ public class HttpMonitorServiceTest implements AbstractTestCase {
                 .collect(Collectors.toSet());
         Assert.assertFalse(errors.isEmpty());
     }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void checkServiceStatusTestEmptyUrl() {
+        monitorService.checkServiceStatus(null);
+    }
 
 }

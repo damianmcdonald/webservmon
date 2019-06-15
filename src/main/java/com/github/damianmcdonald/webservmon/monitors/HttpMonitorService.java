@@ -29,6 +29,10 @@ public class HttpMonitorService {
 
     public Map<String, HttpStatus> checkServiceStatus(final String[] urls) {
         LOGGER.debug(">>> Entering method");
+        if(urls == null || urls.length == 0) {
+            final String emptyMessage = "Urls parameter can not be empty. Please check the http.service.urls parameter of the Spring properties file";
+            throw new IllegalArgumentException(emptyMessage);
+        }
         LOGGER.info(String.format(
                 ">>> Beginning HTTP status checks for urls: %s",
                 String.join(",", urls)

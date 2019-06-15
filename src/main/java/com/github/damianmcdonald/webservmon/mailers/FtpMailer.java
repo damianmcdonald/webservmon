@@ -47,24 +47,17 @@ public class FtpMailer {
     @Value("${ftp.mail.subject.error}")
     private String mailErrorSubject;
 
-    public void sendMail(final FtpMonitorStatus status, final boolean isTrademark, final boolean isFinalResult) {
-        LOGGER.debug(String.format(
-                        ">>> Entering method with parameters: status=%s, isTrademark=%b, isFinalResult=%b"
-                        , isTrademark
-                        , isFinalResult
-                        , status
-                )
-        );
-        final String mailSubject = getSubject(status, isFinalResult);
+    public void sendMail(final FtpMonitorStatus status) {
+        LOGGER.debug(String.format(">>> Entering method with parameters: status=%s", status));
+        final String mailSubject = getSubject(status);
         try {
             LOGGER.info(String.format(
-                            "Sending email with subject: %s, isFinalResult: %b and ftp status: %s"
+                            "Sending email with subject: %s and ftp status: %s"
                             , mailSubject
-                            , isFinalResult
                             , status
                     )
             );
-            javaMailSender.send(constructMail(mailSubject, isTrademark, status));
+            javaMailSender.send(constructMail(mailSubject, status));
             LOGGER.debug("<<< Exiting method.");
         } catch (Exception ex) {
             LOGGER.error(">>> An error has occurred: %s", ex);
@@ -72,15 +65,14 @@ public class FtpMailer {
         }
     }
 
-    private MimeMessage constructMail(final String subject, final boolean isTrademark, final FtpMonitorStatus status) {
+    private MimeMessage constructMail(final String subject, final FtpMonitorStatus status) {
         LOGGER.debug(String.format(
-                        ">>> Entering method with parameters: subject=%s, isTrademark=%b, status=%s"
+                        ">>> Entering method with parameters: subject=%s, status=%s"
                         , subject
-                        , isTrademark
                         , status
                 )
         );
-        final String template = isTrademark ? TEMPLATE_FILE_TM : TEMPLATE_FILE_DS;
+        final String template = status.isFinalResult() ? TEMPLATE_FILE_TM : TEMPLATE_FILE_DS;
         final MimeMessage mail = javaMailSender.createMimeMessage();
         final HashMap model = new HashMap();
         model.put(RESULT_KEY, status);
@@ -105,19 +97,14 @@ public class FtpMailer {
         }
     }
 
-    private String getSubject(final FtpMonitorStatus status, final boolean isFinalResult) {
-        LOGGER.debug(String.format(
-                        ">>> Entering method with parameters: status=%s, isFinalResult=%b"
-                        , status
-                        , isFinalResult
-                )
-        );
+    private String getSubject(final FtpMonitorStatus status) {
+        LOGGER.debug(String.format(">>> Entering method with parameters: status=%s", status));
         if (StringUtils.isNotEmpty(status.getException())
                 || !status.getErrorsDownload().isEmpty()
                 || !status.getErrorsUnzip().isEmpty()
                 || !status.getErrorsXmlValidation().isEmpty()
                 ) {
-            if (isFinalResult) {
+            if (status.isFinalResult()) {
                 LOGGER.error(String.format("Email subject is: %s", mailErrorSubject));
                 LOGGER.debug("<<< Exiting method.");
                 return mailErrorSubject;

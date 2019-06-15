@@ -14,6 +14,10 @@ public class FtpMonitorStatus {
 
     private final String correlationId;
 
+    private final boolean trademark;
+
+    private final boolean finalResult;
+
     private final List<String> successMilestones = new ArrayList();
 
     private final List<String> errorsDownload = new ArrayList();
@@ -24,13 +28,17 @@ public class FtpMonitorStatus {
 
     private final String exception;
 
-    public FtpMonitorStatus (final String correlationId,
-                            final String successMessages,
-                            final String errorsDownloadMessages,
-                            final String errorsUnzipMessages,
-                            final String errorsValidateXmlMessages,
-                            final String exception) {
+    public FtpMonitorStatus(final String correlationId,
+            final boolean isTrademark,
+            final boolean isFinalResult,
+            final String successMessages,
+            final String errorsDownloadMessages,
+            final String errorsUnzipMessages,
+            final String errorsValidateXmlMessages,
+            final String exception) {
         this.correlationId = correlationId;
+        this.trademark = isTrademark;
+        this.finalResult = isFinalResult;
         this.exception = exception;
         convertSuccessMessages(successMessages);
         convertErrorsDownloadMessages(errorsDownloadMessages);
@@ -86,9 +94,19 @@ public class FtpMonitorStatus {
         return exception;
     }
 
+    public boolean isTrademark() {
+        return trademark;
+    }
+
+    public boolean isFinalResult() {
+        return finalResult;
+    }
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append("correlationId", correlationId)
+                .append("isTrademark", trademark)
+                .append("isFinalResult", finalResult)
                 .append("successMessages", successMilestones)
                 .append("errorsDownloadMessages", errorsDownload)
                 .append("errorsUnzipMessages", errorsUnzip)
@@ -96,4 +114,5 @@ public class FtpMonitorStatus {
                 .append("exception", exception)
                 .toString();
     }
+
 }

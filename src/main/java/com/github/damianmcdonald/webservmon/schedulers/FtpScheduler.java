@@ -98,10 +98,8 @@ public class FtpScheduler {
     private void checkFtpStatus(final FtpSettings ftpSettings, final boolean isTrademark, final boolean isFinalResult) {
         LOGGER.debug(">>> Entering method");
         LOGGER.info(String.format(
-                ">>> Beginning FTP status check with parameters: ftpSettings=%s, isTrademark=%b, isFinalResult=%b",
-                ftpSettings,
-                isTrademark,
-                isFinalResult
+                ">>> Beginning FTP status check with parameters: ftpSettings=%s",
+                ftpSettings
         )
         );
         String exceptionString = "";
@@ -111,13 +109,15 @@ public class FtpScheduler {
             LOGGER.error(">>> An error has occurred: %s", ex);
             exceptionString = ExceptionUtils.getStackTrace(ex);
         }
-        mailer.sendMail(createMonitorStatus(exceptionString), isTrademark, isFinalResult);
+        mailer.sendMail(createMonitorStatus(exceptionString, isTrademark, isFinalResult));
         LOGGER.debug("<<< Exiting method");
     }
 
-    private FtpMonitorStatus createMonitorStatus(final String exceptionString) {
+    private FtpMonitorStatus createMonitorStatus(final String exceptionString, final boolean isTrademark,final boolean isFinalResult) {
         final FtpMonitorStatus monitorStatus = new FtpMonitorStatus(
                 ThreadContext.get(KEY_CORRELATION_ID),
+                isTrademark,
+                isFinalResult,
                 ThreadContext.get(KEY_SUCCESS),
                 ThreadContext.get(KEY_ERRORS_DOWNLOAD),
                 ThreadContext.get(KEY_ERRORS_UNZIP),
