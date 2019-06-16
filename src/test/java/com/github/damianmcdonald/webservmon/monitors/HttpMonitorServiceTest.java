@@ -69,7 +69,7 @@ public class HttpMonitorServiceTest implements AbstractTestCase {
     
     @Test(expected=IllegalArgumentException.class)
     public void checkServiceStatusTestEmptyUrl() {
-        monitorService.checkServiceStatus(null);
+        monitorService.checkServiceStatus(new String[0]);
     }
 
 }
